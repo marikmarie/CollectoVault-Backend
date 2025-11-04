@@ -16,7 +16,7 @@ export async function customerRoutes(req: Req, res: Res) {
   const matchGet = url.match(/^\/api\/customers\/([^\/\?]+)/);
   if (matchGet && method === "GET") {
     const id = matchGet[1];
-    const [rows] = await pool.query("SELECT id,email,name,role,points,avatar_url FROM users WHERE id = ? LIMIT 1", [id]);
+    const [rows] = await pool.query("SELECT id,email,name,role,points,avatar_url FROM collecto_vault_users WHERE id = ? LIMIT 1", [id]);
     send(res, 200, (rows as any[])[0] || null);
     return;
   }
@@ -25,7 +25,7 @@ export async function customerRoutes(req: Req, res: Res) {
   const matchRewards = url.match(/^\/api\/customers\/([^\/]+)\/rewards/);
   if (matchRewards && method === "GET") {
     // for demo, return available services that have price_points
-    const [rows] = await pool.query("SELECT s.*, v.business_name FROM services s LEFT JOIN vendors v ON s.vendor_id=v.id WHERE s.price_points IS NOT NULL AND s.active=1");
+    const [rows] = await pool.query("SELECT s.*, v.business_name FROM collecto_vault_services s LEFT JOIN collecto_vault_vendors v ON s.vendor_id=v.id WHERE s.price_points IS NOT NULL AND s.active=1");
     send(res, 200, rows);
     return;
   }
@@ -34,7 +34,7 @@ export async function customerRoutes(req: Req, res: Res) {
   if (matchGet && method === "PUT") {
     const id = matchGet[1];
     const body = req.body || {};
-    await pool.query("UPDATE users SET name=?, avatar_url=? WHERE id=?", [body.name || null, body.avatar_url || null, id]);
+    await pool.query("UPDATE COLLECTO_VAULT_USERS SET name=?, avatar_url=? WHERE id=?", [body.name || null, body.avatar_url || null, id]);
     send(res, 200, { message: "Updated" });
     return;
   }

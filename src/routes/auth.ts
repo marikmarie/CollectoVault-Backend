@@ -26,7 +26,7 @@ export async function authRoutes(req: Req, res: Res) {
     try {
       const password_hash = await hashPassword(body.password);
       await pool.query(
-        "INSERT INTO users (id,email,password_hash,name,role,points,created_at) VALUES (?,?,?,?,?,0,NOW())",
+        "INSERT INTO collecto_vault_users (id,email,password_hash,name,role,points,created_at) VALUES (?,?,?,?,?,0,NOW())",
         [id, body.email, password_hash, body.name, body.role || "customer"]
       );
       const token = signToken({ id, email: body.email, role: body.role || "customer" });
@@ -47,7 +47,7 @@ export async function authRoutes(req: Req, res: Res) {
       return;
     }
     try {
-      const [rows] = await pool.query("SELECT * FROM users WHERE email = ? LIMIT 1", [body.email]);
+      const [rows] = await pool.query("SELECT * FROM collecto_vault_users WHERE email = ? LIMIT 1", [body.email]);
       const user = (rows as any[])[0];
       if (!user) {
         res.writeHead(401, { "Content-Type": "application/json" });
@@ -85,7 +85,7 @@ export async function authRoutes(req: Req, res: Res) {
       return;
     }
     const userId = (payload as any).id;
-    const [rows] = await pool.query("SELECT id,email,name,role,points,avatar_url FROM users WHERE id = ? LIMIT 1", [userId]);
+    const [rows] = await pool.query("SELECT id,email,name,role,points,avatar_url FROM collecto_vault_users WHERE id = ? LIMIT 1", [userId]);
     const user = (rows as any[])[0];
     if (!user) {
       res.writeHead(404, { "Content-Type": "application/json" });

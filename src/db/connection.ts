@@ -7,10 +7,8 @@ const pool = mysql.createPool({
   port: Number(process.env.DB_PORT || 3306),
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASS || "",
-  database: process.env.DB_NAME || "collecto_vault_db",
+  database: process.env.DB_NAME || "collectovault",
   connectionLimit: 10,
 });
 
-// CommonJS-style export so the file remains compatible with the project's
-// CommonJS module setting and avoids 'verbatimModuleSyntax' restrictions.
-module.exports = { pool };
+export { pool };
