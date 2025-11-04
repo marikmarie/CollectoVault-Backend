@@ -2,7 +2,7 @@ import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 dotenv.config();
 
-export const pool = mysql.createPool({
+const pool = mysql.createPool({
   host: process.env.DB_HOST || "127.0.0.1",
   port: Number(process.env.DB_PORT || 3306),
   user: process.env.DB_USER || "root",
@@ -10,3 +10,7 @@ export const pool = mysql.createPool({
   database: process.env.DB_NAME || "collecto_vault_db",
   connectionLimit: 10,
 });
+
+// CommonJS-style export so the file remains compatible with the project's
+// CommonJS module setting and avoids 'verbatimModuleSyntax' restrictions.
+module.exports = { pool };
