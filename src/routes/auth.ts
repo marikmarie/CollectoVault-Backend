@@ -16,32 +16,51 @@ export async function authRoutes(req: Req, res: Res) {
   if (url.startsWith("/api/auth/register") && method === "POST") {
     const body = req.body || {};
     // required: email, password, name
-    if (!body.email || !body.password || !body.name ) {
+    if (!body.email || !body.password || !body.name) {
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ message: "email, password and name required" }));
       return;
     }
-    if(!body.phone){
+    if (!body.phone) {
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ message: "phone number required" }));
       return;
     }
 
-
-
     const id = uuidv4();
     try {
       const password_hash = await hashPassword(body.password);
       await pool.query(
-        "INSERT INTO collecto_vault_users (id,email,password_hash,name,role,phone,points,created_at) VALUES (?,?,?,?,?,0,NOW())",
-        [id, body.email, password_hash, body.name, body.role || "customer"]
+        "INSERT INTO collecto_vault_users (id,email,password_hash,name,role,phone,points,created_at) VALUES (?,?,?,?,?,?,0,NOW())",
+        [
+          id,
+          body.email,
+          password_hash,
+          body.name,
+          body.role || "customer",
+          body.phone,
+        ]
       );
-      const token = signToken({ id, email: body.email, role: body.role || "customer" });
-      ok(res, { id, email: body.email, name: body.name, role: body.role || "customer", token });
+
+      const token = signToken({
+        id,
+        email: body.email,
+        role: body.role || "customer",
+        phone: body.phone,
+      });
+      ok(res, {
+        id,
+        email: body.email,
+        name: body.name,
+        role: body.role || "customer",
+        token,
+      });
     } catch (err: any) {
       console.error(err);
       res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: "Registration failed", error: String(err) }));
+      res.end(
+        JSON.stringify({ message: "Registration failed", error: String(err) })
+      );
     }
     return;
   }
@@ -54,7 +73,10 @@ export async function authRoutes(req: Req, res: Res) {
       return;
     }
     try {
-      const [rows] = await pool.query("SELECT * FROM collecto_vault_users WHERE email = ? LIMIT 1", [body.email]);
+      const [rows] = await pool.query(
+        "SELECT * FROM collecto_vault_users WHERE email = ? LIMIT 1",
+        [body.email]
+      );
       const user = (rows as any[])[0];
       if (!user) {
         res.writeHead(401, { "Content-Type": "application/json" });
@@ -67,8 +89,19 @@ export async function authRoutes(req: Req, res: Res) {
         res.end(JSON.stringify({ message: "Invalid credentials" }));
         return;
       }
-      const token = signToken({ id: user.id, email: user.email, role: user.role });
-      ok(res, { id: user.id, email: user.email, name: user.name, role: user.role, points: user.points || 0, token });
+      const token = signToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      });
+      ok(res, {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        points: user.points || 0,
+        token,
+      });
     } catch (err: any) {
       console.error(err);
       res.writeHead(500, { "Content-Type": "application/json" });
@@ -92,7 +125,10 @@ export async function authRoutes(req: Req, res: Res) {
       return;
     }
     const userId = (payload as any).id;
-    const [rows] = await pool.query("SELECT id,email,name,role,points,avatar_url FROM collecto_vault_users WHERE id = ? LIMIT 1", [userId]);
+    const [rows] = await pool.query(
+      "SELECT id,email,name,role,points,avatar_url FROM collecto_vault_users WHERE id = ? LIMIT 1",
+      [userId]
+    );
     const user = (rows as any[])[0];
     if (!user) {
       res.writeHead(404, { "Content-Type": "application/json" });
