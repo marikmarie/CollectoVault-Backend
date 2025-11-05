@@ -16,7 +16,7 @@ export async function authRoutes(req: Req, res: Res) {
   if (url.startsWith("/api/auth/register") && method === "POST") {
     const body = req.body || {};
     // required: email, password, name
-    if (!body.email || !body.password || !body.name) {
+    if (!body.email || !body.password || !body.name ) {
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ message: "email, password and name required" }));
       return;

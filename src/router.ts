@@ -9,15 +9,6 @@ import { collectoRoutes } from "./routes/collecto";
 
 export type Req = IncomingMessage & { body?: any; params?: Record<string,string>; query?: Record<string,string> };
 export type Res = ServerResponse;
-// export async function authRoutes(req: Req, res: Res) {
-//   if (req.url === "/api/auth/test") {
-//     res.writeHead(200, {"Content-Type":"application/json"});
-//     res.end(JSON.stringify({ message: "ok" }));
-//   } else {
-//     res.writeHead(404, {"Content-Type":"application/json"});
-//     res.end(JSON.stringify({ message: "Not found" }));
-//   }
-// }
 
 export async function router(req: Req, res: Res) {
   // parse url and query
@@ -30,14 +21,13 @@ export async function router(req: Req, res: Res) {
   }
 
   const path = url.pathname || "/";
-  // prefix /api
+  
   if (!path.startsWith("/api")) {
     res.writeHead(404, {"Content-Type":"application/json"});
     res.end(JSON.stringify({ message: "Not found" }));
     return;
   }
 
-  // dispatch to route groups
   if (path.startsWith("/api/auth")) return authRoutes(req,res);
   if (path.startsWith("/api/vendor")) return vendorRoutes(req,res);
   if (path.startsWith("/api/customers")) return customerRoutes(req,res);

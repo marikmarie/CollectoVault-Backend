@@ -9,7 +9,6 @@ function send(res: Res, code: number, body: any) {
   res.end(JSON.stringify(body));
 }
 
-// helper to get user
 function getUser(req: Req) {
   return getAuthUser(req);
 }
