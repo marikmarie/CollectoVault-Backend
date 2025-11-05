@@ -21,12 +21,19 @@ export async function authRoutes(req: Req, res: Res) {
       res.end(JSON.stringify({ message: "email, password and name required" }));
       return;
     }
+    if(!body.phone){
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ message: "phone number required" }));
+      return;
+    }
+
+
 
     const id = uuidv4();
     try {
       const password_hash = await hashPassword(body.password);
       await pool.query(
-        "INSERT INTO collecto_vault_users (id,email,password_hash,name,role,points,created_at) VALUES (?,?,?,?,?,0,NOW())",
+        "INSERT INTO collecto_vault_users (id,email,password_hash,name,role,phone,points,created_at) VALUES (?,?,?,?,?,0,NOW())",
         [id, body.email, password_hash, body.name, body.role || "customer"]
       );
       const token = signToken({ id, email: body.email, role: body.role || "customer" });
