@@ -1,3 +1,4 @@
+// src/middlewares/auth.ts
 import { Req, Res } from "../router";
 import { verifyToken } from "../lib/jwt";
 
@@ -8,6 +9,8 @@ export function getAuthUser(req: Req) {
   const payload = verifyToken(token);
   return payload as any;
 }
+
+
 
 export function requireAuth(req: Req, res: Res): any {
   const user = getAuthUser(req);

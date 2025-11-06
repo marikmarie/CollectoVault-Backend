@@ -4,10 +4,18 @@ import { hashPassword, verifyPassword } from "../lib/hash";
 import { signToken } from "../lib/jwt";
 import { v4 as uuidv4 } from "uuid";
 
+// function ok(res: Res, data: any) {
+//   res.writeHead(200, { "Content-Type": "application/json" });
+//   res.end(JSON.stringify(data));
+// }
+
+
 function ok(res: Res, data: any) {
-  res.writeHead(200, { "Content-Type": "application/json" });
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.writeHead(200);
   res.end(JSON.stringify(data));
 }
+
 
 export async function authRoutes(req: Req, res: Res) {
   const url = req.url || "";
