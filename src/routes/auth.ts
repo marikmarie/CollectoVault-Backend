@@ -2,7 +2,6 @@ import { Req, Res } from "../router";
 import { pool } from "../db/connection";
 import { hashPassword, verifyPassword } from "../lib/hash";
 import { signToken } from "../lib/jwt";
-import { v4 as uuidv4 } from "uuid";
 
 // function ok(res: Res, data: any) {
 //   res.writeHead(200, { "Content-Type": "application/json" });
@@ -34,7 +33,7 @@ export async function authRoutes(req: Req, res: Res) {
         [body.email, password_hash, body.name, body.role, body.phone || null]
       );
 
-      const userId = result.insertId; // ✅ auto increment user ID
+      const userId = result.insertId; 
 
       // 2. INSERT INTO customer OR vendor table
       if (body.role === "customer") {
@@ -180,7 +179,7 @@ export async function authRoutes(req: Req, res: Res) {
     }
     const userId = (payload as any).id;
     const [rows] = await pool.query(
-      "SELECT id,email,name,role,points,avatar_url FROM collecto_vault_users WHERE id = ? LIMIT 1",
+      "SELECT id,email,name,role,avatar_url FROM collecto_vault_users WHERE id = ? LIMIT 1",
       [userId]
     );
     const user = (rows as any[])[0];
