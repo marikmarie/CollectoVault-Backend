@@ -9,13 +9,11 @@ import { v4 as uuidv4 } from "uuid";
 //   res.end(JSON.stringify(data));
 // }
 
-
 function ok(res: Res, data: any) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.writeHead(200);
   res.end(JSON.stringify(data));
 }
-
 
 export async function authRoutes(req: Req, res: Res) {
   const url = req.url || "";
@@ -23,55 +21,103 @@ export async function authRoutes(req: Req, res: Res) {
 
   if (url.startsWith("/api/auth/register") && method === "POST") {
     const body = req.body || {};
-    // required: email, password, name
-    if (!body.email || !body.password || !body.name) {
-      res.writeHead(400, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: "email, password and name required" }));
-      return;
-    }
-    if (!body.phone) {
-      res.writeHead(400, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: "phone number required" }));
-      return;
+    if (!body.email || !body.password || !body.name || !body.role) {
+      return send400(res, "email, password, name and role required");
     }
 
-    const id = uuidv4();
     try {
       const password_hash = await hashPassword(body.password);
-      await pool.query(
-        "INSERT INTO collecto_vault_users (id,email,password_hash,name,role,phone,points,created_at) VALUES (?,?,?,?,?,?,0,NOW())",
-        [
-          id,
-          body.email,
-          password_hash,
-          body.name,
-          body.role || "customer",
-          body.phone,
-        ]
+
+      // 1. INSERT USER
+      const [result]: any = await pool.query(
+        "INSERT INTO collecto_vault_users (email,password_hash,name,role,phone,created_at) VALUES (?,?,?,?,?,NOW())",
+        [body.email, password_hash, body.name, body.role, body.phone || null]
       );
 
+      const userId = result.insertId; // ✅ auto increment user ID
+
+      // 2. INSERT INTO customer OR vendor table
+      if (body.role === "customer") {
+        await pool.query(
+          "INSERT INTO collecto_vault_customers (user_id) VALUES (?)",
+          [userId]
+        );
+      } else if (body.role === "vendor") {
+        await pool.query(
+          "INSERT INTO collecto_vault_vendors (user_id, business_name) VALUES (?,?)",
+          [userId, body.business_name || null]
+        );
+      }
+
       const token = signToken({
-        id,
+        id: userId,
         email: body.email,
-        role: body.role || "customer",
-        phone: body.phone,
+        role: body.role,
       });
       ok(res, {
-        id,
-        email: body.email,
+        id: userId,
         name: body.name,
-        role: body.role || "customer",
+        email: body.email,
+        role: body.role,
         token,
       });
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(
-        JSON.stringify({ message: "Registration failed", error: String(err) })
-      );
+      send500(res, "Registration failed");
     }
-    return;
   }
+
+  // if (url.startsWith("/api/auth/register") && method === "POST") {
+  //   const body = req.body || {};
+  //   // required: email, password, name
+  //   if (!body.email || !body.password || !body.name) {
+  //     res.writeHead(400, { "Content-Type": "application/json" });
+  //     res.end(JSON.stringify({ message: "email, password and name required" }));
+  //     return;
+  //   }
+  //   if (!body.phone) {
+  //     res.writeHead(400, { "Content-Type": "application/json" });
+  //     res.end(JSON.stringify({ message: "phone number required" }));
+  //     return;
+  //   }
+
+  //   const id = uuidv4();
+  //   try {
+  //     const password_hash = await hashPassword(body.password);
+  //     await pool.query(
+  //       "INSERT INTO collecto_vault_users (id,email,password_hash,name,role,phone,points,created_at) VALUES (?,?,?,?,?,?,0,NOW())",
+  //       [
+  //         id,
+  //         body.email,
+  //         password_hash,
+  //         body.name,
+  //         body.role || "customer",
+  //         body.phone,
+  //       ]
+  //     );
+
+  //     const token = signToken({
+  //       id,
+  //       email: body.email,
+  //       role: body.role || "customer",
+  //       phone: body.phone,
+  //     });
+  //     ok(res, {
+  //       id,
+  //       email: body.email,
+  //       name: body.name,
+  //       role: body.role || "customer",
+  //       token,
+  //     });
+  //   } catch (err: any) {
+  //     console.error(err);
+  //     res.writeHead(500, { "Content-Type": "application/json" });
+  //     res.end(
+  //       JSON.stringify({ message: "Registration failed", error: String(err) })
+  //     );
+  //   }
+  //   return;
+  // }
 
   if (url.startsWith("/api/auth/login") && method === "POST") {
     const body = req.body || {};
@@ -147,6 +193,17 @@ export async function authRoutes(req: Req, res: Res) {
     return;
   }
 
+  function send400(res: Res, message: string) {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.writeHead(400);
+    res.end(JSON.stringify({ message }));
+  }
+
+  function send500(res: Res, message: string) {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.writeHead(500);
+    res.end(JSON.stringify({ message }));
+  }
   // default not found
   res.writeHead(404, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ message: "auth route not found" }));
