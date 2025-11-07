@@ -9,19 +9,19 @@ const POLL_MS = Number(process.env.WORKER_POLL_MS ?? 3000);
 const PAGE_LIMIT = 100; // process in batches per business
 
 async function getLoyalBusinesses() {
-  const [rows] = await vaultDb.query('SELECT id, name FROM business WHERE loyalty_enabled = 1');
+  const [rows] = await vaultDb.query('SELECT id, name FROM collecto_vault_business WHERE loyalty_enabled = 1');
   return (rows as any[]) as { id: number; name: string }[];
 }
 
 async function getCheckpoint(businessId: number) {
-  const [rows] = await vaultDb.query('SELECT last_processed_collecto_tx_id FROM poll_checkpoint WHERE business_id = ?', [businessId]);
+  const [rows] = await vaultDb.query('SELECT last_processed_collecto_tx_id FROM collecto_vault_poll_checkpoint WHERE business_id = ?', [businessId]);
   const r = (rows as any[])[0];
   return r ? Number(r.last_processed_collecto_tx_id) : 0;
 }
 
 async function setCheckpoint(businessId: number, lastId: number) {
   await vaultDb.query(
-    `INSERT INTO poll_checkpoint (business_id, last_processed_collecto_tx_id) VALUES (?, ?)
+    `INSERT INTO collecto_vault_poll_checkpoint (business_id, last_processed_collecto_tx_id) VALUES (?, ?)
      ON DUPLICATE KEY UPDATE last_processed_collecto_tx_id = VALUES(last_processed_collecto_tx_id), updated_at = NOW()`,
     [businessId, lastId]
   );
@@ -52,7 +52,7 @@ async function processCollectoTx(tx: any) {
   }
 
   // Check if already processed (idempotency)
-  const [already] = await vaultDb.query('SELECT id FROM loyalty_transaction WHERE transaction_id = ?', [transactionId]);
+  const [already] = await vaultDb.query('SELECT id FROM collecto_vault_transaction WHERE transaction_id = ?', [transactionId]);
   if ((already as any[]).length) {
     console.log('[vaultWorker] already processed', transactionId);
     return;
@@ -68,7 +68,7 @@ async function processCollectoTx(tx: any) {
     try {
       await conn.beginTransaction();
       await conn.query(
-        `INSERT INTO loyalty_transaction (transaction_id, business_id, phone_number, amount, points, rules_applied)
+        `INSERT INTO collecto_vault_transaction (transaction_id, business_id, phone_number, amount, points, rules_applied)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [transactionId, businessId, phone, amount, result.points, JSON.stringify(result.applied)]
       );

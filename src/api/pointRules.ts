@@ -14,7 +14,7 @@ export async function handleCreatePointRule(req: IncomingMessage, res: ServerRes
     const priority = body.priority ?? 100;
 
     const [result] = await vaultDb.query(
-      `INSERT INTO point_rule (business_id, name, type, params, priority)
+      `INSERT INTO collecto_vault_pointrule (business_id, name, type, params, priority)
        VALUES (?, ?, ?, ?, ?)`,
       [business_id, name, type, JSON.stringify(params), priority]
     );
@@ -32,7 +32,7 @@ export async function handleListPointRules(req: IncomingMessage, res: ServerResp
   try {
     const [rows] = await vaultDb.query(
       `SELECT id, business_id, name, type, params, priority, created_at
-       FROM point_rule
+       FROM collecto_vault_pointrule
        ORDER BY created_at DESC`
     );
 
