@@ -66,58 +66,6 @@ export async function authRoutes(req: Req, res: Res) {
     }
   }
 
-  // if (url.startsWith("/api/auth/register") && method === "POST") {
-  //   const body = req.body || {};
-  //   // required: email, password, name
-  //   if (!body.email || !body.password || !body.name) {
-  //     res.writeHead(400, { "Content-Type": "application/json" });
-  //     res.end(JSON.stringify({ message: "email, password and name required" }));
-  //     return;
-  //   }
-  //   if (!body.phone) {
-  //     res.writeHead(400, { "Content-Type": "application/json" });
-  //     res.end(JSON.stringify({ message: "phone number required" }));
-  //     return;
-  //   }
-
-  //   const id = uuidv4();
-  //   try {
-  //     const password_hash = await hashPassword(body.password);
-  //     await pool.query(
-  //       "INSERT INTO collecto_vault_users (id,email,password_hash,name,role,phone,points,created_at) VALUES (?,?,?,?,?,?,0,NOW())",
-  //       [
-  //         id,
-  //         body.email,
-  //         password_hash,
-  //         body.name,
-  //         body.role || "customer",
-  //         body.phone,
-  //       ]
-  //     );
-
-  //     const token = signToken({
-  //       id,
-  //       email: body.email,
-  //       role: body.role || "customer",
-  //       phone: body.phone,
-  //     });
-  //     ok(res, {
-  //       id,
-  //       email: body.email,
-  //       name: body.name,
-  //       role: body.role || "customer",
-  //       token,
-  //     });
-  //   } catch (err: any) {
-  //     console.error(err);
-  //     res.writeHead(500, { "Content-Type": "application/json" });
-  //     res.end(
-  //       JSON.stringify({ message: "Registration failed", error: String(err) })
-  //     );
-  //   }
-  //   return;
-  // }
-
   if (url.startsWith("/api/auth/login") && method === "POST") {
     const body = req.body || {};
     if (!body.email || !body.password) {

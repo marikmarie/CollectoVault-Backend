@@ -8,13 +8,13 @@ export async function handleEnableLoyalty(req: IncomingMessage, res: ServerRespo
     const body = await readJSON(req);
     const business_id = Number(body.business_id);
 
-    // turn on loyalty
+    
     await vaultDb.query(
       `UPDATE collecto_vault_business SET loyalty_enabled = 1 WHERE id = ?`,
       [business_id]
     );
 
-    // ensure checkpoint exists
+    
     await vaultDb.query(
       `INSERT INTO collecto_vault_poll_checkpoint (business_id, last_processed_collecto_tx_id)
        VALUES (?, 0)

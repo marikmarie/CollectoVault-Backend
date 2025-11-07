@@ -16,11 +16,11 @@ export type Req = IncomingMessage & {
 export type Res = ServerResponse;
 
 export async function router(req: Req, res: Res) {
-  // parse url and query
+
   const url = parse(req.url || "", true);
   req.query = (url.query as Record<string, string>) || {};
 
-  // parse body
+
   if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method || "")) {
     try {
       req.body = await jsonBody(req);

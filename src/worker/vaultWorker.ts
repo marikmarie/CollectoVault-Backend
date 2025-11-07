@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const POLL_MS = Number(process.env.WORKER_POLL_MS ?? 3000);
-const PAGE_LIMIT = 100; // process in batches per business
+const PAGE_LIMIT = 100; 
 
 async function getLoyalBusinesses() {
   const [rows] = await vaultDb.query('SELECT id, name FROM collecto_vault_business WHERE loyalty_enabled = 1');
@@ -42,7 +42,6 @@ async function processCollectoTx(tx: any) {
   const transactionId = String(tx.transaction_id);
 
   if (!phone) {
-    // store as unattributed
     await vaultDb.query(
       `INSERT INTO unattributed_transaction (business_id, collecto_transaction_id, amount, payload) VALUES (?, ?, ?, ?)`,
       [businessId, tx.id, amount, JSON.stringify(tx.payload || {})]
@@ -51,19 +50,16 @@ async function processCollectoTx(tx: any) {
     return;
   }
 
-  // Check if already processed (idempotency)
   const [already] = await vaultDb.query('SELECT id FROM collecto_vault_transaction WHERE transaction_id = ?', [transactionId]);
   if ((already as any[]).length) {
     console.log('[vaultWorker] already processed', transactionId);
     return;
   }
 
-  // Evaluate rules
   const rules = await loadPointRulesForBusiness(businessId);
   const result = evaluateRules(amount, rules);
 
   try {
-    // Insert final loyalty transaction in a transaction for safety
     const conn = await vaultDb.getConnection();
     try {
       await conn.beginTransaction();
@@ -84,15 +80,13 @@ async function processCollectoTx(tx: any) {
       console.log(`[vaultWorker] Processed tx ${transactionId}: +${result.points} points`);
     } catch (err) {
       await conn.rollback();
-      // If duplicate unique key error, it's ok (idempotent)
+      //Duplicate
       console.error('[vaultWorker] DB insert failed', err);
       throw err;
     } finally {
       conn.release();
     }
-
-    // Send SMS (non-blocking)
-    const message = `You earned ${result.points} points for your purchase. Transaction: ${transactionId}`;
+  const message = `You earned ${result.points} points for your purchase. Transaction: ${transactionId}`;
     await sendSms(businessId, phone, message);
 
   } catch (err) {
@@ -111,14 +105,12 @@ async function processBusiness(businessId: number) {
         await processCollectoTx(tx);
       } catch (err) {
         console.error('error processing tx', tx.transaction_id, err);
-        // Do not update checkpoint for this tx; stop and retry later
         return;
       }
       afterId = Number(tx.id);
     }
-    // update checkpoint after processing batch
     await setCheckpoint(businessId, afterId);
-    if (txs.length < PAGE_LIMIT) break; // done for now
+    if (txs.length < PAGE_LIMIT) break; 
   }
 }
 
