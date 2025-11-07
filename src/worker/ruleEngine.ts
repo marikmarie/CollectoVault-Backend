@@ -1,4 +1,4 @@
-import vaultDb from '../db_vault';
+import vaultDb from '../db/db_vault';
 import { PointRuleRow } from '../types';
 
 export async function loadPointRulesForBusiness(businessId: number): Promise<PointRuleRow[]> {

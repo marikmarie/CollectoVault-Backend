@@ -1,5 +1,5 @@
-import collectoDb from '../db_collecto';
-import vaultDb from '../db_vault';
+import collectoDb from '../db/db_collecto';
+import vaultDb from '../db/db_vault';
 import { loadPointRulesForBusiness, evaluateRules } from './ruleEngine';
 import { sendSms } from '../sms';
 import dotenv from 'dotenv';

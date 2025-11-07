@@ -1,6 +1,6 @@
 // src/api/tierRules.ts
 import { IncomingMessage, ServerResponse } from 'http';
-import vaultDb from '../db_vault';
+import vaultDb from '../db/db_vault';
 import { readJSON } from './_utils';
 
 export async function handleCreateTierRule(req: IncomingMessage, res: ServerResponse) {

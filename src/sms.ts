@@ -1,5 +1,5 @@
 
-import vaultDb from './db_vault';
+import vaultDb from './db/db_vault';
 
 export async function sendSms(businessId: number | null, phone: string, message: string) {
   const [res] = await vaultDb.query(

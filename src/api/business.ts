@@ -1,6 +1,6 @@
 // src/api/business.ts
 import { IncomingMessage, ServerResponse } from 'http';
-import vaultDb from '../db_vault';
+import vaultDb from '../db/db_vault';
 import { readJSON } from './_utils';
 
 export async function handleEnableLoyalty(req: IncomingMessage, res: ServerResponse) {
