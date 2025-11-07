@@ -7,7 +7,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "start": "node dist/app.js",
     "build": "tsc",
-     "worker": "ts-node src/worker/vaultWorker.ts",
+    "worker": "ts-node src/worker/vaultWorker.ts",
     "worker:dev": "ts-node-dev --respawn --transpile-only src/worker/vaultWorker.ts"
 
   },
