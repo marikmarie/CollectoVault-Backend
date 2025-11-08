@@ -2,7 +2,7 @@ import http from 'http';
 import dotenv from 'dotenv';
 import { handleCreatePointRule, handleListPointRules } from './pointRules';
 import { handleCreateTierRule, handleListTierRules } from './tierRules';
-import { handleEnableLoyalty } from './business';
+//import { handleEnableLoyalty } from './business';
 import { handleCollectoAuth, handleCollectoAuthVerify } from './collectoAuth';
 dotenv.config();
 
@@ -16,7 +16,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && req.url === '/tier-rules') return handleCreateTierRule(req, res);
   if (req.method === 'GET' && req.url === '/tier-rules') return handleListTierRules(req, res);
 
-  if (req.method === 'POST' && req.url === '/business/enable') return handleEnableLoyalty(req, res);
+  //if (req.method === 'POST' && req.url === '/business/enable') return handleEnableLoyalty(req, res);
 
   // inside your existing server routing
 
