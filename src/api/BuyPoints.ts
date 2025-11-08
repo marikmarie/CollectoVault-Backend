@@ -8,7 +8,6 @@ dotenv.config();
 
 
 export async function buyPointsRequest(req: IncomingMessage & { body?: any }, res: ServerResponse) {
-  //return ("requestToPay", payload);
   //const start = Date.now;
   try{
 
@@ -31,10 +30,6 @@ export async function buyPointsRequest(req: IncomingMessage & { body?: any }, re
     res.end(JSON.stringify(payload));
     console.error("[CollectoAuth] error:", err?.message);
   }
-}
-
-export async function collectoRequestToPayStatus(payload: { transactionId: string }) {
- // return call("requestToPayStatus", payload);
 }
 
 
@@ -63,11 +58,9 @@ export async function getCustomerInvoices(req: IncomingMessage & { body?: any },
     console.log("[CollectoAuth] body:", body);
     const client = makeCollectoClient();
     const response = await client.post("/getInvoices", body);
-   // const data = await forwardToCollecto("/getInvoices", body, headers); 
     res.writeHead(response.status, { "content-type": "application/json" });
     res.end(JSON.stringify(response.data)); 
-    // res.writeHead(200, { "content-type": "application/json" });
-    // res.end(JSON.stringify(data));
+    
   } catch (err: any) {
     const status = err?.response?.status ?? 500;
     const payload = err?.response?.data ?? { message: err.message };
