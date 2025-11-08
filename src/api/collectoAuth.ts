@@ -1,4 +1,4 @@
-/// src/api/collectoAuth.ts
+
 import { IncomingMessage, ServerResponse } from "http";
 import axios from "axios";
 import { readJSON } from "./_utils"; 
@@ -8,9 +8,6 @@ dotenv.config();
 const COLLECTO_BASE = process.env.COLLECTO_BASE_URL;
 const COLLECTO_USERNAME = process.env.COLLECTO_USERNAME;
 const COLLECTO_API_KEY = process.env.COLLECTO_API_KEY;
-
-console.log("Collecto api URL:", COLLECTO_API_KEY);
-console.log("Collecto base URL:", COLLECTO_BASE);
 
 if (!COLLECTO_API_KEY) {
   console.warn("Warning: COLLECTO_API_KEY not set in .env");
@@ -70,7 +67,7 @@ function makeCollectoClient() {
     const md = (response.config as any).metadata || {};
     const duration = md.startTime ? Date.now() - md.startTime : undefined;
     console.log(`[Collecto <- RESPONSE] ${response.status} ${response.config.url} (${duration}ms)`);
-    console.log("[Collecto <- RESPONSE] headers:", maskHeaders(response.headers as any));
+   // console.log("[Collecto <- RESPONSE] headers:", maskHeaders(response.headers as any));
     console.log("[Collecto <- RESPONSE] data:", safeStringify(response.data, 4000));
     return response;
   }, (error) => {
@@ -81,9 +78,9 @@ function makeCollectoClient() {
     if (error.response) {
       console.error("[Collecto <- ERROR] status:", error.response.status);
       console.error("[Collecto <- ERROR] data:", safeStringify(error.response.data, 4000));
-      console.error("[Collecto <- ERROR] headers:", maskHeaders(error.response.headers));
+   //   console.error("[Collecto <- ERROR] headers:", maskHeaders(error.response.headers));
     } else {
-      // No response - likely network / timeout
+    
       console.error("[Collecto <- ERROR] no response object - possible network error or timeout");
     }
     return Promise.reject(error);
@@ -92,71 +89,11 @@ function makeCollectoClient() {
   return client;
 }
 
-// // POST /collecto/auth
-// export async function handleCollectoAuth(req: IncomingMessage, res: ServerResponse) {
-//   const start = Date.now();
-
-//   try {
-//      console.log("[Incoming] parsed body:", safeStringify(req, 4000));
-
-//     const body = await readJSON(req);
-//     console.log("read body:", safeStringify(body, 4000));
-
-//     const client = makeCollectoClient();
-//     const r = await client.post("/auth", body);
-
-//     const total = Date.now() - start;
-//     console.log(`[handleCollectoAuth] proxied success (${total}ms) -> status ${r.status}`);
-
-//     res.writeHead(r.status, { "content-type": "application/json" });
-//     res.end(JSON.stringify(r.data));
-//   } catch (err: any) {
-//     const status = err.response?.status ?? 500;
-//     const payload = err.response?.data ?? { message: err.message };
-
-//     console.error(`[handleCollectoAuth] error - status ${status} - ${(err && err.message) || err}`);
-//     if (err && err.stack) console.error(err.stack);
-
-//     res.writeHead(status, { "content-type": "application/json" });
-//     res.end(JSON.stringify(payload));
-//   }
-// }
-
-// // POST /collecto/authVerify
-// export async function handleCollectoAuthVerify(req: IncomingMessage, res: ServerResponse) {
-//   const start = Date.now();
-//   console.log(`[Incoming] ${req.method} ${req.url} from ${req.socket.remoteAddress} - ${new Date().toISOString()}`);
-//  // console.log("[Incoming] headers:", maskHeaders(req.headers as any));
-
-//   try {
-//     const body = await readJSON(req);
-//     console.log("[Incoming] parsed body:", safeStringify(body, 4000));
-
-//     const client = makeCollectoClient();
-//     const r = await client.post("/authVerify", body);
-
-//     const total = Date.now() - start;
-//     console.log(`[handleCollectoAuthVerify] proxied success (${total}ms) -> status ${r.status}`);
-
-//     // Optionally: you may store session / log here before forwarding
-//     res.writeHead(r.status, { "content-type": "application/json" });
-//     res.end(JSON.stringify(r.data));
-//   } catch (err: any) {
-//     const status = err.response?.status ?? 500;
-//     const payload = err.response?.data ?? { message: err.message };
-
-//     console.error(`[handleCollectoAuthVerify] error - status ${status} - ${(err && err.message) || err}`);
-//     if (err && err.stack) console.error(err.stack);
-
-//     res.writeHead(status, { "content-type": "application/json" });
-//     res.end(JSON.stringify(payload));
-//   }
-// src/api/collectoAuth.ts
 
 export async function handleCollectoAuth(req: IncomingMessage & { body?: any }, res: ServerResponse) {
   const start = Date.now();
   try {
-    const body = req.body || {}; // ✅ use already-parsed body
+    const body = req.body || {};
     console.log("[CollectoAuth] body:", body);
 
     const client = makeCollectoClient();
@@ -178,7 +115,7 @@ export async function handleCollectoAuth(req: IncomingMessage & { body?: any }, 
 export async function handleCollectoAuthVerify(req: IncomingMessage & { body?: any }, res: ServerResponse) {
   const start = Date.now();
   try {
-    const body = req.body || {}; // ✅ use already-parsed body
+    const body = req.body || {}; 
     console.log("[CollectoAuthVerify] body:", body);
 
     const client = makeCollectoClient();
