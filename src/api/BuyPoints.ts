@@ -6,18 +6,6 @@ import { pool } from "../db/connection";
 dotenv.config();
 
 
-// async function call(method: string, body: any) {
-// //  if (!USERNAME || !X_API_KEY) throw new Error("Collecto credentials missing (COLLECTO_USERNAME/COLLECTO_API_KEY)");
-//   const url = `${BASE}/${USERNAME}/${method}`;
-//   const resp = await axios.post(url, body, {
-//     headers: {
-//       "Content-Type": "application/json",
-//       "x-api-key": X_API_KEY
-//     },
-//     timeout: 20000
-//   });
-//   return resp.data;
-// }
 
 export async function buyPointsRequest(req: IncomingMessage & { body?: any }, res: ServerResponse) {
   //return ("requestToPay", payload);
