@@ -1,0 +1,2 @@
+baseurl/username/{request}
+headers x-api-key
