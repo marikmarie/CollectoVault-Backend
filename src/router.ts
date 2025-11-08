@@ -4,8 +4,8 @@ import { jsonBody } from "./utils/body";
 import { authRoutes } from "./routes/auth";
 import { vendorRoutes } from "./routes/vendors";
 import { customerRoutes } from "./routes/customers";
-import { transactionRoutes } from "./routes/transactions";
-import { collectoRoutes } from "./routes/collecto";
+// import { transactionRoutes } from "./routes/transactions";
+// import { collectoRoutes } from "./routes/collecto";
 import { rewardRoutes } from "./routes/rewards";
 import { handleCollectoAuth, handleCollectoAuthVerify } from "./api/collectoAuth";
 import {buyPointsRequest} from "./api/BuyPoints";
@@ -51,9 +51,9 @@ export async function router(req: Req, res: Res) {
 
   if (path.startsWith("/api/vendor")) return vendorRoutes(req, res);
   if (path.startsWith("/api/customers")) return customerRoutes(req, res);
-  if (path.startsWith("/api/transactions")) return transactionRoutes(req, res);
-  if (path.startsWith("/api/collecto")) return collectoRoutes(req, res);
-  // Rewards
+  // if (path.startsWith("/api/transactions")) return transactionRoutes(req, res);
+  // if (path.startsWith("/api/collecto")) return collectoRoutes(req, res);
+  // // Rewards
   if (path.startsWith("/api/rewards")) return rewardRoutes(req, res);
 
   res.writeHead(404, { "Content-Type": "application/json" });

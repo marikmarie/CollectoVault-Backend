@@ -43,30 +43,30 @@ export async function transactionRoutes(req: Req, res: Res) {
     }
   }
 
-  // POST /api/transactions/buy-points/status  { transactionId: "<collecto transaction id>" }
-  if (url.startsWith("/api/transactions/buy-points/status") && method === "POST") {
-    const body = req.body || {};
-    if (!body.transactionId) return send(res, 400, { message: "transactionId required" });
-    try {
-      const status: any = await collectoRequestToPayStatus({ transactionId: body.transactionId });
-      // if success, update transactions table where external_tx_id = transactionId
-      if (status?.status === "success" || status?.status === "paid") {
-        // mark all matching tx success (simplest)
-        await pool.query("UPDATE collecto_vault_transactions SET status='success' WHERE external_tx_id = ?", [body.transactionId]);
-        // add points to user (if stored in meta or points param was included)
-        // For demo we attempt to find transaction and add points defined in local transaction table
-        const [rows] = await pool.query("SELECT * FROM collecto_vault_transactions WHERE external_tx_id = ? LIMIT 1", [body.transactionId]);
-        const tx = (rows as any[])[0];
-        if (tx && tx.points && tx.points > 0) {
-          await pool.query("UPDATE collecto_vault_users SET points = COALESCE(points,0) + ? WHERE id = ?", [tx.points, tx.customer_id]);
-        }
-      }
-      return send(res, 200, { collectoStatus: status });
-    } catch (err: any) {
-      console.error(err);
-      return send(res, 500, { message: "status check failed", error: String(err) });
-    }
-  }
+  // // POST /api/transactions/buy-points/status  { transactionId: "<collecto transaction id>" }
+  // if (url.startsWith("/api/transactions/buy-points/status") && method === "POST") {
+  //   const body = req.body || {};
+  //   if (!body.transactionId) return send(res, 400, { message: "transactionId required" });
+  //   try {
+  //     const status: any = await collectoRequestToPayStatus({ transactionId: body.transactionId });
+  //     // if success, update transactions table where external_tx_id = transactionId
+  //     if (status?.status === "success" || status?.status === "paid") {
+  //       // mark all matching tx success (simplest)
+  //       await pool.query("UPDATE collecto_vault_transactions SET status='success' WHERE external_tx_id = ?", [body.transactionId]);
+  //       // add points to user (if stored in meta or points param was included)
+  //       // For demo we attempt to find transaction and add points defined in local transaction table
+  //       const [rows] = await pool.query("SELECT * FROM collecto_vault_transactions WHERE external_tx_id = ? LIMIT 1", [body.transactionId]);
+  //       const tx = (rows as any[])[0];
+  //       if (tx && tx.points && tx.points > 0) {
+  //         await pool.query("UPDATE collecto_vault_users SET points = COALESCE(points,0) + ? WHERE id = ?", [tx.points, tx.customer_id]);
+  //       }
+  //     }
+  //     return send(res, 200, { collectoStatus: status });
+  //   } catch (err: any) {
+  //     console.error(err);
+  //     return send(res, 500, { message: "status check failed", error: String(err) });
+  //   }
+  // }
 
   // POST /api/transactions/redeem  { serviceId, customerId (or auth) }
   if (url.startsWith("/api/transactions/redeem") && method === "POST") {
