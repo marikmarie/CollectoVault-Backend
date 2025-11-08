@@ -37,14 +37,12 @@ function safeStringify(x: any, max = 1000) {
   }
 }
 
-function makeCollectoClient() {
+export function makeCollectoClient() {
   const client = axios.create({
     baseURL: COLLECTO_BASE,
     timeout: 10000, 
     headers: {
-      //"username": COLLECTO_USERNAME,
       "x-api-key": COLLECTO_API_KEY,
-      //"x-collecto-apikey": COLLECTO_API_KEY,
       "Content-Type": "application/json",
     },
   });

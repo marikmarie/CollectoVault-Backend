@@ -2,7 +2,7 @@ import { Req, Res } from "../router";
 import { pool } from "../db/connection";
 import { v4 as uuidv4 } from "uuid";
 import { getAuthUser } from "../middlewares/auth";
-import { collectoRequestToPay, collectoServicePayment, collectoRequestToPayStatus } from "../services/collectoClient";
+import { collectoRequestToPay, collectoServicePayment, collectoRequestToPayStatus } from "../api/BuyPoints";
 
 function send(res: Res, code: number, body: any) {
   res.writeHead(code, { "Content-Type": "application/json" });

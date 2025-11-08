@@ -7,7 +7,6 @@ export async function handleEnableLoyalty(req: IncomingMessage, res: ServerRespo
   try {
     const body = await readJSON(req);
     const business_id = Number(body.business_id);
-
     
     await vaultDb.query(
       `UPDATE collecto_vault_business SET loyalty_enabled = 1 WHERE id = ?`,

@@ -8,6 +8,7 @@ import { transactionRoutes } from "./routes/transactions";
 import { collectoRoutes } from "./routes/collecto";
 import { rewardRoutes } from "./routes/rewards";
 import { handleCollectoAuth, handleCollectoAuthVerify } from "./api/collectoAuth";
+import {buyPointsRequest} from "./api/BuyPoints";
 
 export type Req = IncomingMessage & {
   body?: any;
@@ -39,8 +40,14 @@ export async function router(req: Req, res: Res) {
   }
 
   if (path.startsWith("/api/auth")) return authRoutes(req, res);
-  if (req.method === 'POST' && req.url === '/api/collecto/auth') return handleCollectoAuth(req, res);
-  if (req.method === 'POST' && req.url === '/api/collecto/authVerify') return handleCollectoAuthVerify(req, res);
+
+  //new endpoints going to collecto
+  if (req.method === 'POST' && req.url === '/api/collecto/auth') 
+    return handleCollectoAuth(req, res);
+  if (req.method === 'POST' && req.url === '/api/collecto/authVerify') 
+    return handleCollectoAuthVerify(req, res);
+  if (req.method === 'POST' && req.url === '/api/collecto/buy-points') 
+    return buyPointsRequest(req, res);
 
   if (path.startsWith("/api/vendor")) return vendorRoutes(req, res);
   if (path.startsWith("/api/customers")) return customerRoutes(req, res);

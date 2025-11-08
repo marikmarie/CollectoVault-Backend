@@ -1,10 +1,9 @@
 import http from 'http';
 import dotenv from 'dotenv';
-import { handleCreatePointRule, handleListPointRules } from './api/pointRules';
-import { handleCreateTierRule, handleListTierRules } from './api/tierRules';
-import { handleEnableLoyalty } from './api/business';
-import { handleCollectoAuth, handleCollectoAuthVerify } from './api/collectoAuth';
-
+import { handleCreatePointRule, handleListPointRules } from './pointRules';
+import { handleCreateTierRule, handleListTierRules } from './tierRules';
+import { handleEnableLoyalty } from './business';
+import { handleCollectoAuth, handleCollectoAuthVerify } from './collectoAuth';
 dotenv.config();
 
 const PORT = Number(process.env.PORT ?? 4000);

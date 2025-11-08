@@ -1,5 +1,5 @@
 import { Req, Res } from "../router";
-import { collectoRequestToPay, collectoRequestToPayStatus, collectoServicePayment, collectoServicePaymentStatus } from "../services/collectoClient";
+import { collectoRequestToPay, collectoRequestToPayStatus, collectoServicePayment, collectoServicePaymentStatus } from "../api/BuyPoints";
 
 function send(res: Res, code: number, body: any) {
   res.writeHead(code, { "Content-Type": "application/json" });
