@@ -3,10 +3,6 @@ import { pool } from "../db/connection";
 import { hashPassword, verifyPassword } from "../lib/hash";
 import { signToken } from "../lib/jwt";
 
-// function ok(res: Res, data: any) {
-//   res.writeHead(200, { "Content-Type": "application/json" });
-//   res.end(JSON.stringify(data));
-// }
 
 function ok(res: Res, data: any) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
