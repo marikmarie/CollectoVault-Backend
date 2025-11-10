@@ -5,8 +5,6 @@ import { pool } from "../db/connection";
 
 dotenv.config();
 
-
-
 export async function buyPointsRequest(req: IncomingMessage & { body?: any }, res: ServerResponse) {
   //const start = Date.now;
   try{
