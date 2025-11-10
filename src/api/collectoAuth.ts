@@ -65,7 +65,6 @@ export function makeCollectoClient() {
     const md = (response.config as any).metadata || {};
     const duration = md.startTime ? Date.now() - md.startTime : undefined;
     console.log(`[Collecto <- RESPONSE] ${response.status} ${response.config.url} (${duration}ms)`);
-   // console.log("[Collecto <- RESPONSE] headers:", maskHeaders(response.headers as any));
     console.log("[Collecto <- RESPONSE] data:", safeStringify(response.data, 4000));
     return response;
   }, (error) => {
@@ -76,7 +75,6 @@ export function makeCollectoClient() {
     if (error.response) {
       console.error("[Collecto <- ERROR] status:", error.response.status);
       console.error("[Collecto <- ERROR] data:", safeStringify(error.response.data, 4000));
-   //   console.error("[Collecto <- ERROR] headers:", maskHeaders(error.response.headers));
     } else {
     
       console.error("[Collecto <- ERROR] no response object - possible network error or timeout");
@@ -86,7 +84,6 @@ export function makeCollectoClient() {
 
   return client;
 }
-
 
 export async function handleCollectoAuth(req: IncomingMessage & { body?: any }, res: ServerResponse) {
   const start = Date.now();

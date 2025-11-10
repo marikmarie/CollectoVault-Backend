@@ -11,8 +11,8 @@ export async function buyPointsRequest(req: IncomingMessage & { body?: any }, re
   //const start = Date.now;
   try{
 
-     await pool.query("INSERT INTO collecto_vault_transactions (customer_id,type,points,amount,status,external_tx_id,meta,created_at) VALUES (?,?,?,?,?,?,JSON_OBJECT('collecto',? ),NOW())",
-        [req.id, "buy_points", body.points || 0, body.amount, "pending", transactionId || collectoResp?.transaction_id || null, JSON.stringify(collectoResp)]);
+    //  await pool.query("INSERT INTO collecto_vault_transactions (customer_id,type,points,amount,status,external_tx_id,meta,created_at) VALUES (?,?,?,?,?,?,JSON_OBJECT('collecto',? ),NOW())",
+    //     [req.id, "buy_points", body.points || 0, body.amount, "pending", transactionId || collectoResp?.transaction_id || null, JSON.stringify(collectoResp)]);
      
     const body = req.body || {};
     console.log("[CollectoAuth] body:", body);
