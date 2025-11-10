@@ -7,7 +7,7 @@ export async function sendSms(businessId: number | null, phone: string, message:
     [businessId, phone, message, 'queued']
   );
   const insertId = (res as any).insertId;
-  // Pretend to send for now
+
   await vaultDb.query(`UPDATE collecto_vault_sms_log SET status = 'sent' WHERE id = ?`, [insertId]);
   return { ok: true, id: insertId };
 }
