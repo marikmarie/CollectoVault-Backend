@@ -7,7 +7,7 @@ dotenv.config();
 
 type Invoice = {
   transactionId: string;
-  business_id?: number; // Collecto might use businessId or business_id
+  business_id?: number; 
   businessId?: number;
   amount: number;
   phone?: string | null;
@@ -20,7 +20,7 @@ export type PointRuleRow = {
   business_id: number;
   name: string;
   type: string; // 'per_amount' | 'fixed' | 'multiplier' | 'campaign' etc
-  params: any; // JSON column
+  params: any; 
   priority: number;
 };
 
@@ -32,9 +32,6 @@ export type TierRow = {
   benefits?: any;
 };
 
-/**
- * Load point rules for a business (ordered by priority ASC)
- */
 export async function loadPointRulesForBusiness(businessId: number): Promise<PointRuleRow[]> {
   const q = `SELECT id, business_id, name, type, params, priority FROM point_rule WHERE business_id = ? ORDER BY priority ASC`;
   const [rows] = await pool.query(q, [businessId]);
@@ -255,5 +252,23 @@ export async function getCustomerDetails(req: IncomingMessage & { body?: any }, 
     const payload = err?.response?.data ?? { message: err?.message ?? "Server error" };
     res.writeHead(status, { "content-type": "application/json" });
     res.end(JSON.stringify(payload));
+  }
+}
+
+
+export async function getClientInvoices(req: IncomingMessage & { body?: any }, res: ServerResponse) {
+  try {
+    const client = makeCollectoClient();
+    const body = req.body || {};
+    const response = await client.post("/getInvoices", body);
+
+    res.writeHead(response.status, { "content-type": "application/json" });
+    res.end(JSON.stringify(response.data));
+  } catch (err: any) {
+    const status = err?.response?.status ?? 500;
+    const payload = err?.response?.data ?? { message: err.message };
+    res.writeHead(status, { "content-type": "application/json" });
+    res.end(JSON.stringify(payload));
+    console.error("[getClientInvoices] error:", err?.message);
   }
 }

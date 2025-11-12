@@ -52,7 +52,7 @@ export async function router(req: Req, res: Res) {
   if (path.startsWith("/api/customers")) return customerRoutes(req, res);
 
   if (req.method === 'GET' && req.url === '/api/customer/me') return getCustomerDetails(req, res);
-  if (req.method === 'GET' && req.url === '/api/customer/rewards') return handleListTierRules(req, res);
+  //if (req.method === 'GET' && req.url === '/api/customer/rewards') return handleTierRules(req, res);
   if (req.method === 'GET' && req.url === '/api/customer/invoices') return getClientInvoices(req, res);
   if (req.method === 'GET' && req.url === '/api/customer/tier') return getTierRules(req, res);
 
