@@ -182,7 +182,6 @@ export async function getCustomerDetails(req: IncomingMessage & { body?: any }, 
 
     const collectoData = await fetchInvoicesFromCollecto(token, body);
 
-    // Normalize response structure: Collecto may return { invoices: [...] } or an array
     const invoicesRaw = Array.isArray(collectoData) ? collectoData : ((collectoData as any)?.invoices ?? ((collectoData as any)?.data ?? []));
     const invoices: Invoice[] = (invoicesRaw as any[]).map((inv: any) => ({
       transactionId: inv.transactionId ?? inv.id ?? inv.txId ?? inv.reference ?? "",
@@ -194,7 +193,6 @@ export async function getCustomerDetails(req: IncomingMessage & { body?: any }, 
       ...inv,
     }));
 
-    // If no invoices return an empty structured response
     if (!invoices.length) {
       res.writeHead(200, { "content-type": "application/json" });
       res.end(JSON.stringify({
