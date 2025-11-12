@@ -93,10 +93,8 @@ export async function handleCollectoAuth(req: IncomingMessage & { body?: any }, 
 
     const client = makeCollectoClient();
     const r = await client.post("/auth", body);
-
     res.writeHead(r.status, { "content-type": "application/json" });
     res.end(JSON.stringify(r.data));
-
     console.log(`[CollectoAuth] success (${Date.now() - start}ms)`);
   } catch (err: any) {
     const status = err?.response?.status ?? 500;
@@ -111,8 +109,6 @@ export async function handleCollectoAuthVerify(req: IncomingMessage & { body?: a
   const start = Date.now();
   try {
     const body = req.body || {}; 
-    console.log("[CollectoAuthVerify] body:", body);
-
     const client = makeCollectoClient();
     const r = await client.post("/authVerify", body);
 

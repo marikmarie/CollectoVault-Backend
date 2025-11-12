@@ -1,7 +1,6 @@
 import { IncomingMessage, ServerResponse } from "http";
 import { parse } from "url";
 import { jsonBody } from "./utils/body";
-import { authRoutes } from "./routes/auth";
 import { vendorRoutes } from "./routes/vendors";
 import { customerRoutes } from "./routes/customers";
 // import { transactionRoutes } from "./routes/transactions";
@@ -9,6 +8,9 @@ import { customerRoutes } from "./routes/customers";
 import { rewardRoutes } from "./routes/rewards";
 import { handleCollectoAuth, handleCollectoAuthVerify } from "./api/collectoAuth";
 import {buyPointsRequest} from "./api/BuyPoints";
+import { handleCreatePointRule, handleListPointRules } from './api/pointRules';
+import { handleCreateTierRule, handleListTierRules, getTierRules } from '../src/api/tierRules';
+import {getCustomerDetails, getClientInvoices} from "./api/customers"
 
 export type Req = IncomingMessage & {
   body?: any;
@@ -39,20 +41,31 @@ export async function router(req: Req, res: Res) {
     return;
   }
 
-  if (path.startsWith("/api/auth")) return authRoutes(req, res);
-
-  //new endpoints going to collecto
   if (req.method === 'POST' && req.url === '/api/collecto/auth') 
     return handleCollectoAuth(req, res);
   if (req.method === 'POST' && req.url === '/api/collecto/authVerify') 
     return handleCollectoAuthVerify(req, res);
-  if (req.method === 'POST' && req.url === '/api/collecto/buy-points') 
+  if (req.method === 'POST' && req.url === '/api/buy-points') 
     return buyPointsRequest(req, res);
 
   if (path.startsWith("/api/vendor")) return vendorRoutes(req, res);
   if (path.startsWith("/api/customers")) return customerRoutes(req, res);
-  // if (path.startsWith("/api/transactions")) return transactionRoutes(req, res);
-  // if (path.startsWith("/api/collecto")) return collectoRoutes(req, res);
+
+  if (req.method === 'GET' && req.url === '/api/customer/me') return getCustomerDetails(req, res);
+  if (req.method === 'GET' && req.url === '/api/customer/rewards') return handleListTierRules(req, res);
+  if (req.method === 'GET' && req.url === '/api/customer/invoices') return getClientInvoices(req, res);
+  if (req.method === 'GET' && req.url === '/api/customer/tier') return getTierRules(req, res);
+
+
+
+    if (req.method === 'POST' && req.url === '/point-rules') return handleCreatePointRule(req, res);
+  if (req.method === 'GET' && req.url === '/point-rules') return handleListPointRules(req, res);
+
+  if (req.method === 'POST' && req.url === '/tier-rules') return handleCreateTierRule(req, res);
+  if (req.method === 'GET' && req.url === '/tier-rules') return handleListTierRules(req, res);
+
+  if (req.method === 'GET' && req.url === '/tier-rules') return handleListTierRules(req, res);
+
   // // Rewards
   if (path.startsWith("/api/rewards")) return rewardRoutes(req, res);
 

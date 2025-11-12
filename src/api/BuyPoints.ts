@@ -2,25 +2,25 @@ import { IncomingMessage, ServerResponse } from "http";
 import dotenv from "dotenv";
 import {makeCollectoClient} from "./collectoAuth";
 import { pool } from "../db/connection";
-
 dotenv.config();
 
-export async function buyPointsRequest(req: IncomingMessage & { body?: any }, res: ServerResponse) {
-  //const start = Date.now;
-  try{
 
-    //  await pool.query("INSERT INTO collecto_vault_transactions (customer_id,type,points,amount,status,external_tx_id,meta,created_at) VALUES (?,?,?,?,?,?,JSON_OBJECT('collecto',? ),NOW())",
-    //     [req.id, "buy_points", body.points || 0, body.amount, "pending", transactionId || collectoResp?.transaction_id || null, JSON.stringify(collectoResp)]);
+export async function buyPointsRequest(req: IncomingMessage & { body?: any }, res: ServerResponse) {
+  try{
+     await pool.query("INSERT INTO collecto_vault_transactions (customer_id,type,points,amount,status,external_tx_id,meta,created_at) VALUES (?,?,?,?,?,?,JSON_OBJECT('collecto',? ),NOW())",
+        [req.id, "buy_points", body.points || 0, body.amount, "pending", transactionId || ?.transaction_id || null, JSON.stringify()]);
      
     const body = req.body || {};
     console.log("[CollectoAuth] body:", body);
     const client = makeCollectoClient();
-    const r = await client.post("/buy-points", body);
-
-    await pool.query("UPDATE collecto_vault_transactions SET status='success' WHERE external_tx_id = ?", [body.transactionId]);
-        
-    res.writeHead(r.status, { "content-type": "application/json" });
-    res.end(JSON.stringify(r.data));
+    const response = await client.post("/buy-points", body);
+    if(response){
+    await pool.query("UPDATE collecto_vault_transactions SET status='success' WHERE external_tx_id = ?", [body.transactionId]);      
+    res.writeHead(response.status, { "content-type": "application/json" });
+    res.end(JSON.stringify(response.data));
+  
+    }
+   
   }catch(err: any){
     const status = err?.response?.status ?? 500;
     const payload = err?.response?.data ?? { message: err.message };
