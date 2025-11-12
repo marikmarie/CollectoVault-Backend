@@ -1,11 +1,9 @@
 import { IncomingMessage, ServerResponse } from "http";
 import { parse } from "url";
 import { jsonBody } from "./utils/body";
-import { vendorRoutes } from "./routes/vendors";
-import { customerRoutes } from "./routes/customers";
 // import { transactionRoutes } from "./routes/transactions";
 // import { collectoRoutes } from "./routes/collecto";
-import { rewardRoutes } from "./routes/rewards";
+
 import { handleCollectoAuth, handleCollectoAuthVerify } from "./api/collectoAuth";
 import {buyPointsRequest, handleCreatePointPackage,handleListPointPackages} from "./api/BuyPoints";
 import { handleCreatePointRule, handleListPointRules } from './api/pointRules';
@@ -48,9 +46,7 @@ export async function router(req: Req, res: Res) {
   if (req.method === 'POST' && req.url === '/api/buy-points') 
     return buyPointsRequest(req, res);
 
-  if (path.startsWith("/api/vendor")) return vendorRoutes(req, res);
-  if (path.startsWith("/api/customers")) return customerRoutes(req, res);
-
+ 
   if (req.method === 'GET' && req.url === '/api/customer/me') return getCustomerDetails(req, res);
   //if (req.method === 'GET' && req.url === '/api/customer/rewards') return handleTierRules(req, res);
   if (req.method === 'GET' && req.url === '/api/customer/invoices') return getClientInvoices(req, res);
@@ -69,8 +65,7 @@ export async function router(req: Req, res: Res) {
   if (req.method === 'GET' && req.url === '/tier-rules') return handleListTierRules(req, res);
 
   // // Rewards
-  if (path.startsWith("/api/rewards")) return rewardRoutes(req, res);
-
+  
   res.writeHead(404, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ message: "API route not found" }));
 }
