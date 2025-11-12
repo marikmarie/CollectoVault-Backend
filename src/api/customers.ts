@@ -153,13 +153,10 @@ export async function getClientInvoices(req: IncomingMessage & { body?: any }, r
       res.end(JSON.stringify({ message: "Missing vault token" }));
       return;
     }
-
-    // pass through body if frontend wants to filter (optional)
+    
     const body = req.body || {};
 
     const data = await fetchInvoicesFromCollecto(token, body);
-
-    // Respond with whatever Collecto returned (normalized by frontend if needed)
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(data));
   } catch (err: any) {
@@ -171,7 +168,6 @@ export async function getClientInvoices(req: IncomingMessage & { body?: any }, r
   }
 }
 
-/* ----- Handler: getCustomerDetails (computes points + tiers) ----- */
 export async function getCustomerDetails(req: IncomingMessage & { body?: any }, res: ServerResponse) {
   try {
     const token = extractVaultTokenFromReq(req as any);
@@ -181,10 +177,9 @@ export async function getCustomerDetails(req: IncomingMessage & { body?: any }, 
       return;
     }
 
-    // optional body can include filters; we pass it to Collecto
+    console.log("Fetching customer details with token:", token);
     const body = req.body || {};
 
-    // 1) Fetch invoices via shared helper (this forwards the token to Collecto)
     const collectoData = await fetchInvoicesFromCollecto(token, body);
 
     // Normalize response structure: Collecto may return { invoices: [...] } or an array
