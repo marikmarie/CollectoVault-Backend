@@ -7,7 +7,7 @@ import { customerRoutes } from "./routes/customers";
 // import { collectoRoutes } from "./routes/collecto";
 import { rewardRoutes } from "./routes/rewards";
 import { handleCollectoAuth, handleCollectoAuthVerify } from "./api/collectoAuth";
-import {buyPointsRequest} from "./api/BuyPoints";
+import {buyPointsRequest, handleCreatePointPackage,handleListPointPackages} from "./api/BuyPoints";
 import { handleCreatePointRule, handleListPointRules } from './api/pointRules';
 import { handleCreateTierRule, handleListTierRules, getTierRules } from '../src/api/tierRules';
 import {getCustomerDetails, getClientInvoices} from "./api/customers"
@@ -56,9 +56,11 @@ export async function router(req: Req, res: Res) {
   if (req.method === 'GET' && req.url === '/api/customer/invoices') return getClientInvoices(req, res);
   if (req.method === 'GET' && req.url === '/api/customer/tier') return getTierRules(req, res);
 
+  if (req.method === 'POST' && req.url === '/api/point-packages') return handleCreatePointPackage(req, res);
+  if (req.method === 'GET' && req.url === '/api/point-packages') return handleListPointPackages(req, res);
+ 
 
-
-    if (req.method === 'POST' && req.url === '/point-rules') return handleCreatePointRule(req, res);
+  if (req.method === 'POST' && req.url === '/point-rules') return handleCreatePointRule(req, res);
   if (req.method === 'GET' && req.url === '/point-rules') return handleListPointRules(req, res);
 
   if (req.method === 'POST' && req.url === '/tier-rules') return handleCreateTierRule(req, res);

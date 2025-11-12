@@ -222,3 +222,54 @@ export async function getTierForPoints(totalPoints: number, businessId?: number)
     return null;
   }
 }
+
+// GET /api/point-packages?businessId=1
+export async function handleListPointPackages(req: IncomingMessage & { query?: any; body?: any }, res: ServerResponse) {
+  try {
+    const businessId = (req.query && req.query.businessId) || req.body?.businessId || null;
+    let rows;
+    if (businessId) {
+      [rows] = await pool.query("SELECT id, business_id, sku, label, points, price, currency, created_at, updated_at FROM collecto_vault_point_packages WHERE business_id = ? ORDER BY points ASC", [businessId]);
+    } else {
+      [rows] = await pool.query("SELECT id, business_id, sku, label, points, price, currency, created_at, updated_at FROM collecto_vault_point_packages ORDER BY created_at DESC");
+    }
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(rows));
+  } catch (err: any) {
+    console.error("[handleListPointPackages] error:", err);
+    res.writeHead(500, { "content-type": "application/json" });
+    res.end(JSON.stringify({ message: err.message }));
+  }
+}
+
+// POST /api/point-packages  (body: { businessId, sku?, label, points, price })
+export async function handleCreatePointPackage(req: IncomingMessage & { body?: any }, res: ServerResponse) {
+  try {
+    const body = req.body || {};
+    const businessId = Number(body.businessId);
+    const points = Number(body.points);
+    const price = Number(body.price);
+    if (!businessId || !points || !price) {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ message: "businessId, points and price are required" }));
+      return;
+    }
+
+    const sku = body.sku ?? null;
+    const label = body.label ?? null;
+    const currency = body.currency ?? "UGX";
+
+    const [result] = await pool.query(
+      `INSERT INTO collecto_vault_point_packages (business_id, sku, label, points, price, currency)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [businessId, sku, label, points, price, currency]
+    );
+
+    res.writeHead(201, { "content-type": "application/json" });
+    res.end(JSON.stringify({ ok: true, insertId: (result as any).insertId }));
+  } catch (err: any) {
+    console.error("[handleCreatePointPackage] error:", err);
+    res.writeHead(500, { "content-type": "application/json" });
+    res.end(JSON.stringify({ message: err.message }));
+  }
+}

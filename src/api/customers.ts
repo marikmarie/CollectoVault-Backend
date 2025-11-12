@@ -1,17 +1,18 @@
 // src/api/customerDetails.ts
 import { IncomingMessage, ServerResponse } from "http";
 import { pool } from "../db/connection";
-import { makeCollectoClient } from "./collectoAuth"; // you export this in collectoAuth
+import { makeCollectoClient } from "./collectoAuth";
 import dotenv from "dotenv";
 dotenv.config();
 
+/* ----- Types ----- */
 type Invoice = {
   transactionId: string;
-  business_id?: number; 
+  business_id?: number;
   businessId?: number;
   amount: number;
   phone?: string | null;
-  created_at?: string;
+  created_at?: string | null;
   [k: string]: any;
 };
 
@@ -19,8 +20,8 @@ export type PointRuleRow = {
   id: number;
   business_id: number;
   name: string;
-  type: string; // 'per_amount' | 'fixed' | 'multiplier' | 'campaign' etc
-  params: any; 
+  type: string;
+  params: any;
   priority: number;
 };
 
@@ -32,33 +33,20 @@ export type TierRow = {
   benefits?: any;
 };
 
+/* ----- DB helpers ----- */
 export async function loadPointRulesForBusiness(businessId: number): Promise<PointRuleRow[]> {
   const q = `SELECT id, business_id, name, type, params, priority FROM point_rule WHERE business_id = ? ORDER BY priority ASC`;
   const [rows] = await pool.query(q, [businessId]);
   return (rows as any) as PointRuleRow[];
 }
 
-/**
- * Load tiers for a business ordered by min_points ascending
- */
 export async function loadTiersForBusiness(businessId: number): Promise<TierRow[]> {
   const q = `SELECT id, business_id, name, min_points, benefits FROM tier_rule WHERE business_id = ? ORDER BY min_points ASC`;
   const [rows] = await pool.query(q, [businessId]);
   return (rows as any) as TierRow[];
 }
 
-/**
- * Evaluate rules for a single invoice amount.
- * Returns { points, applied } where applied is an array of applied rule details.
- *
- * Rules supported:
- * - per_amount: params { per: number, points: number }
- * - fixed: params { points: number }
- * - multiplier: params { multiplier: number } // multiplies basePoints (if provided) — here we consider multiplier applied to running total
- * - campaign: params { start?: ISO, end?: ISO, extra_points: number }
- *
- * You can extend this to other rule types later.
- */
+/* ----- Rule evaluation ----- */
 export function evaluateRules(amount: number, rules: PointRuleRow[], basePoints = 0) {
   let totalPoints = basePoints;
   const applied: Array<{ id: number; name: string; type: string; points: number }> = [];
@@ -87,9 +75,7 @@ export function evaluateRules(amount: number, rules: PointRuleRow[], basePoints 
         break;
       }
       case "multiplier": {
-        // multiplier applies to the running total (or basePoints)
         const mult = Number(params.multiplier ?? 1);
-        // additional points = floor((totalPoints + basePoints) * (mult - 1))
         pts = Math.floor((totalPoints + basePoints) * (mult - 1));
         break;
       }
@@ -102,10 +88,8 @@ export function evaluateRules(amount: number, rules: PointRuleRow[], basePoints 
         }
         break;
       }
-      default: {
-        // unknown rule type — skip
+      default:
         pts = 0;
-      }
     }
 
     if (pts > 0) {
@@ -117,12 +101,9 @@ export function evaluateRules(amount: number, rules: PointRuleRow[], basePoints 
   return { points: totalPoints, applied };
 }
 
-/**
- * Helper: determine the best tier for totalPoints (pick tier with largest min_points <= totalPoints)
- */
+/* ----- Tier helper ----- */
 export function findTierForPoints(tiers: TierRow[], totalPoints: number): TierRow | null {
   if (!tiers || tiers.length === 0) return null;
-  // ensure sorted ascending by min_points
   const sorted = tiers.slice().sort((a, b) => a.min_points - b.min_points);
   let matched: TierRow | null = null;
   for (const t of sorted) {
@@ -132,59 +113,93 @@ export function findTierForPoints(tiers: TierRow[], totalPoints: number): TierRo
   return matched;
 }
 
-/**
- * Primary handler: fetch invoices from Collecto, compute points and tiers, return JSON
- *
- * Expected input in req.body:
- * { phone?: string, clientId?: string, collectoId?: string }
- *
- * Response:
- * {
- *   invoices: [ { ...invoice, points: number, applied: [] } ],
- *   totalPoints: number,
- *   perBusiness: {
- *      [businessId]: { totalPoints: number, tier: TierRow | null, tiers: TierRow[] }
- *   }
- * }
- */
-export async function getCustomerDetails(req: IncomingMessage & { body?: any }, res: ServerResponse) {
-  try {
-    const payload = req.body || {};
-    const { phone, clientId, collectoId } = payload;
+/* ----- Utility: extract vault token from headers ----- */
+function extractVaultTokenFromReq(req: IncomingMessage & { headers?: any }) {
+  const headers = req.headers || {};
+  // Accept Authorization: Bearer <token> OR custom header vaultOtpToken (case-insensitive)
+  let token = "";
+  if (typeof headers.authorization === "string" && headers.authorization.trim().length) {
+    token = headers.authorization.replace(/^Bearer\s+/i, "").trim();
+  }
+  if (!token) {
+    // check a few header name variations
+    token = (headers["vaultOtpToken"] || headers["vaultotpToken"] || headers["vaultotptoken"] || headers["x-vault-otptoken"] || "") as string;
+    if (typeof token !== "string") token = "";
+  }
+  return token || null;
+}
 
-    if (!phone && !clientId) {
-      res.writeHead(400, { "content-type": "application/json" });
-      res.end(JSON.stringify({ message: "phone or clientId is required" }));
+/* ----- Shared helper: fetch invoices from Collecto (returns data) ----- */
+export async function fetchInvoicesFromCollecto(token: string, body: any = {}) {
+  if (!token) throw new Error("Missing token");
+  const client = makeCollectoClient();
+  // include the vault token as Authorization header when requesting Collecto
+  // (Collecto should accept this token and identify the customer)
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  // Use POST because many collecto endpoints expect POST with payload (adjust if yours expects GET)
+  const r = await client.post("/getInvoices", body, { headers });
+  return r.data;
+}
+
+/* ----- Handler: getClientInvoices (API endpoint) ----- */
+export async function getClientInvoices(req: IncomingMessage & { body?: any }, res: ServerResponse) {
+  try {
+    const token = extractVaultTokenFromReq(req as any);
+    if (!token) {
+      res.writeHead(401, { "content-type": "application/json" });
+      res.end(JSON.stringify({ message: "Missing vault token" }));
       return;
     }
 
-    // Call Collecto invoices endpoint.
-    // NOTE: adjust path & parameters to match your Collecto API contract. Many collecto APIs accept GET /invoices?phone=...
-    const client = makeCollectoClient();
+    // pass through body if frontend wants to filter (optional)
+    const body = req.body || {};
 
-    // Build query. Use GET with query params when possible to let Collecto filter server-side.
-    const params: any = {};
-    if (phone) params.phone = phone;
-    if (clientId) params.clientId = clientId;
-    if (collectoId) params.collectoId = collectoId;
+    const data = await fetchInvoicesFromCollecto(token, body);
 
-    // If Collecto expects POST, change to client.post('/invoices', params)
-    const r = await client.get("/invoices", { params });
+    // Respond with whatever Collecto returned (normalized by frontend if needed)
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(data));
+  } catch (err: any) {
+    console.error("[getClientInvoices] error:", err?.message ?? err);
+    const status = err?.response?.status ?? 500;
+    const payload = err?.response?.data ?? { message: err?.message ?? "Unable to fetch invoices" };
+    res.writeHead(status, { "content-type": "application/json" });
+    res.end(JSON.stringify(payload));
+  }
+}
 
-    const data = (r as any)?.data;
-    const invoicesRaw = Array.isArray(data) ? (data as any[]) : (data?.invoices ?? []);
-    // Normalize invoices into our Invoice type
-    const invoices: Invoice[] = invoicesRaw.map((inv: any) => ({
+/* ----- Handler: getCustomerDetails (computes points + tiers) ----- */
+export async function getCustomerDetails(req: IncomingMessage & { body?: any }, res: ServerResponse) {
+  try {
+    const token = extractVaultTokenFromReq(req as any);
+    if (!token) {
+      res.writeHead(401, { "content-type": "application/json" });
+      res.end(JSON.stringify({ message: "Missing vault token" }));
+      return;
+    }
+
+    // optional body can include filters; we pass it to Collecto
+    const body = req.body || {};
+
+    // 1) Fetch invoices via shared helper (this forwards the token to Collecto)
+    const collectoData = await fetchInvoicesFromCollecto(token, body);
+
+    // Normalize response structure: Collecto may return { invoices: [...] } or an array
+    const invoicesRaw = Array.isArray(collectoData) ? collectoData : ((collectoData as any)?.invoices ?? ((collectoData as any)?.data ?? []));
+    const invoices: Invoice[] = (invoicesRaw as any[]).map((inv: any) => ({
       transactionId: inv.transactionId ?? inv.id ?? inv.txId ?? inv.reference ?? "",
-      business_id: inv.business_id ?? inv.businessId ?? inv.business_id,
-      businessId: inv.businessId ?? inv.business_id,
+      business_id: inv.business_id ?? inv.businessId ?? inv.merchantId ?? 0,
+      businessId: inv.businessId ?? inv.business_id ?? inv.merchantId ?? 0,
       amount: Number(inv.amount ?? inv.total ?? inv.value ?? 0),
       phone: inv.phone ?? inv.msisdn ?? null,
       created_at: inv.created_at ?? inv.date ?? inv.timestamp ?? null,
       ...inv,
     }));
 
-    // If no invoices return empty response
+    // If no invoices return an empty structured response
     if (!invoices.length) {
       res.writeHead(200, { "content-type": "application/json" });
       res.end(JSON.stringify({
@@ -195,43 +210,35 @@ export async function getCustomerDetails(req: IncomingMessage & { body?: any }, 
       return;
     }
 
-    // For each invoice, compute points by loading rules for the invoice business
+    // 2) Compute points per invoice using point rules per business
     const perBusiness: Record<string, { totalPoints: number; invoices: any[]; tier: TierRow | null; tiers: TierRow[] }> = {};
     let grandTotalPoints = 0;
 
-    // Cache rules & tiers per business to avoid repeated DB calls
     const rulesCache: Record<number, PointRuleRow[]> = {};
     const tiersCache: Record<number, TierRow[]> = {};
 
     for (const inv of invoices) {
       const businessId = Number(inv.businessId ?? inv.business_id ?? 0) || 0;
       if (!businessId) {
-        // If business id not provided, skip points calculation for this invoice
-        // But still include invoice in response
         if (!perBusiness["unknown"]) perBusiness["unknown"] = { totalPoints: 0, invoices: [], tier: null, tiers: [] };
         perBusiness["unknown"].invoices.push({ ...inv, points: 0, applied: [] });
         continue;
       }
 
-      if (!rulesCache[businessId]) {
-        rulesCache[businessId] = await loadPointRulesForBusiness(businessId);
-      }
-      if (!tiersCache[businessId]) {
-        tiersCache[businessId] = await loadTiersForBusiness(businessId);
-      }
+      if (!rulesCache[businessId]) rulesCache[businessId] = await loadPointRulesForBusiness(businessId);
+      if (!tiersCache[businessId]) tiersCache[businessId] = await loadTiersForBusiness(businessId);
 
-      const rules = rulesCache[businessId];
+      const rules = rulesCache[businessId] || [];
       const { points, applied } = evaluateRules(inv.amount, rules, 0);
 
       grandTotalPoints += points;
 
-      if (!perBusiness[businessId]) {
-        perBusiness[businessId] = { totalPoints: 0, invoices: [], tier: null, tiers: tiersCache[businessId] || [] };
-      }
+      if (!perBusiness[businessId]) perBusiness[businessId] = { totalPoints: 0, invoices: [], tier: null, tiers: tiersCache[businessId] ?? [] };
       perBusiness[businessId].totalPoints += points;
       perBusiness[businessId].invoices.push({ ...inv, points, applied });
     }
 
+    // 3) Determine tiers for each business
     for (const bid of Object.keys(perBusiness)) {
       const pb = perBusiness[bid];
       const tiers = pb.tiers || [];
@@ -255,20 +262,30 @@ export async function getCustomerDetails(req: IncomingMessage & { body?: any }, 
   }
 }
 
-
-export async function getClientInvoices(req: IncomingMessage & { body?: any }, res: ServerResponse) {
+export async function getClientInvoices2(req: IncomingMessage & { body?: any; headers?: any }, res: ServerResponse) {
   try {
+    const authHeader = (req.headers?.authorization || req.headers?.Authorization || "") as string;
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (!token) {
+      res.writeHead(401, { "content-type": "application/json" });
+      res.end(JSON.stringify({ message: "Missing Authorization token" }));
+      return;
+    }
+
     const client = makeCollectoClient();
+    // forward body filters, but we still attach the token header
     const body = req.body || {};
-    const response = await client.post("/getInvoices", body);
+    const response = await client.post("/getInvoices", body, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     res.writeHead(response.status, { "content-type": "application/json" });
     res.end(JSON.stringify(response.data));
   } catch (err: any) {
+    console.error("[getClientInvoices] error:", err?.message ?? err);
     const status = err?.response?.status ?? 500;
-    const payload = err?.response?.data ?? { message: err.message };
+    const payload = err?.response?.data ?? { message: err?.message ?? "Server error" };
     res.writeHead(status, { "content-type": "application/json" });
     res.end(JSON.stringify(payload));
-    console.error("[getClientInvoices] error:", err?.message);
   }
 }
