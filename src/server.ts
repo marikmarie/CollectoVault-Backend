@@ -6,7 +6,7 @@ const server = createServer((req, res) => {
   let filePath = join(process.cwd(), "dist", req.url === "/" ? "index.html" : req.url!);
 
   if (!existsSync(filePath)) {
-    filePath = join(process.cwd(), "dist", "index.html"); // SPA fallback
+    filePath = join(process.cwd(), "dist", "index.html"); 
   }
 
   try {
