@@ -56,13 +56,12 @@ export async function router(req: Req, res: Res) {
   if (req.method === 'GET' && req.url === '/api/point-packages') return handleListPointPackages(req, res);
  
 
-  if (req.method === 'POST' && req.url === '/point-rules') return handleCreatePointRule(req, res);
-  if (req.method === 'GET' && req.url === '/point-rules') return handleListPointRules(req, res);
+  if (req.method === 'POST' && req.url === '/api/point-rules') return handleCreatePointRule(req, res);
+  if (req.method === 'GET' && req.url === '/api/point-rules') return handleListPointRules(req, res);
 
-  if (req.method === 'POST' && req.url === '/tier-rules') return handleCreateTierRule(req, res);
-  if (req.method === 'GET' && req.url === '/tier-rules') return handleListTierRules(req, res);
-
-  if (req.method === 'GET' && req.url === '/tier-rules') return handleListTierRules(req, res);
+  if (req.method === 'POST' && req.url === '/api/tier-rules') return handleCreateTierRule(req, res);
+  if (req.method === 'GET' && req.url === '/api/tier-rules') return handleListTierRules(req, res);
+  if (req.method === 'GET' && req.url === '/api/tier-rules') return handleListTierRules(req, res);
 
   // // Rewards
   
