@@ -29,7 +29,6 @@ export async function handleCreatePointRule(req: IncomingMessage, res: ServerRes
 }
 
 
-
 export async function handleListPointRules(req: IncomingMessage, res: ServerResponse) {
   try {
     const [rows] = await vaultDb.query(

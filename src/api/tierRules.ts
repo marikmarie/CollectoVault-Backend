@@ -43,3 +43,22 @@ export async function handleListTierRules(req: IncomingMessage, res: ServerRespo
     res.end(JSON.stringify({ error: String(err) }));
   }
 }
+
+
+
+export async function getTierRules(req: IncomingMessage, res: ServerResponse) {
+  try {
+    const [rows] = await vaultDb.query(
+      `SELECT id, business_id, name, min_points, benefits, created_at
+       FROM collecto_vault_tier_rule
+       ORDER BY created_at DESC`
+    );
+
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify(rows));
+
+  } catch (err) {
+    res.writeHead(500, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: String(err) }));
+  }
+}
