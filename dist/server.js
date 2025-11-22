@@ -5,7 +5,7 @@ const http_1 = require("http");
 const fs_1 = require("fs");
 const path_1 = require("path");
 const router_js_1 = require("./router.js");
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 const server = (0, http_1.createServer)(async (req, res) => {
     try {
         if (req.url?.startsWith("/api")) {

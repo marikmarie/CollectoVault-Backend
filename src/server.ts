@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { router } from "./router.js";
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 
 const server = createServer(async (req, res) => {
   try {

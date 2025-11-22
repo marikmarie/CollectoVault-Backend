@@ -63,7 +63,6 @@ export async function router(req: Req, res: Res) {
   if (req.method === 'GET' && req.url === '/api/tier-rules') return handleListTierRules(req, res);
   if (req.method === 'GET' && req.url === '/api/tier-rules') return handleListTierRules(req, res);
 
-  // // Rewards
   
   res.writeHead(404, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ message: "API route not found" }));
