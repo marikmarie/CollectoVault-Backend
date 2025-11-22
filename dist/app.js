@@ -7,7 +7,7 @@ const http_1 = __importDefault(require("http"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const router_1 = require("./router");
-const PORT = Number(process.env.PORT || 5000);
+const PORT = Number(process.env.PORT || 8080);
 const server = http_1.default.createServer(async (req, res) => {
     // add some CORS for local dev and preflight
     res.setHeader("Access-Control-Allow-Origin", "*");
