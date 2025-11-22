@@ -2,7 +2,7 @@ import http from "http";
 import dotenv from "dotenv";
 dotenv.config();
 import { router } from "./router";
-const PORT = Number(process.env.PORT || 5000);
+const PORT = Number(process.env.PORT || 8080);
 
 const server = http.createServer(async (req, res) => {
   // add some CORS for local dev and preflight
