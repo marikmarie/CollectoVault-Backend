@@ -11,5 +11,5 @@ COPY . .
 RUN npm run build
 
 EXPOSE 8080
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/app.js"]
 

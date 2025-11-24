@@ -7,7 +7,7 @@ import { jsonBody } from "./utils/body";
 import { handleCollectoAuth, handleCollectoAuthVerify } from "./api/collectoAuth";
 import {buyPointsRequest, handleCreatePointPackage,handleListPointPackages} from "./api/BuyPoints";
 import { handleCreatePointRule, handleListPointRules } from './api/pointRules';
-import { handleCreateTierRule, handleListTierRules } from '../src/api/tierRules';
+import { handleCreateTierRule, handleListTierRules } from './api/tierRules';
 import {getCustomerDetails, getClientInvoices} from "./api/customers"
 
 export type Req = IncomingMessage & {

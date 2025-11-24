@@ -8,7 +8,7 @@ const body_1 = require("./utils/body");
 const collectoAuth_1 = require("./api/collectoAuth");
 const BuyPoints_1 = require("./api/BuyPoints");
 const pointRules_1 = require("./api/pointRules");
-const tierRules_1 = require("../api/tierRules");
+const tierRules_1 = require("./api/tierRules");
 const customers_1 = require("./api/customers");
 async function router(req, res) {
     const url = (0, url_1.parse)(req.url || "", true);
@@ -53,7 +53,6 @@ async function router(req, res) {
         return (0, tierRules_1.handleListTierRules)(req, res);
     if (req.method === 'GET' && req.url === '/api/tier-rules')
         return (0, tierRules_1.handleListTierRules)(req, res);
-    // // Rewards
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ message: "API route not found" }));
 }

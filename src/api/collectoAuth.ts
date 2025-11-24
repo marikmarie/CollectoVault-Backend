@@ -6,7 +6,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const COLLECTO_BASE = process.env.COLLECTO_BASE_URL;
-const COLLECTO_USERNAME = process.env.COLLECTO_USERNAME;
 const COLLECTO_API_KEY = process.env.COLLECTO_API_KEY;
 
 if (!COLLECTO_API_KEY) {
