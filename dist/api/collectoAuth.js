@@ -10,7 +10,6 @@ const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const COLLECTO_BASE = process.env.COLLECTO_BASE_URL;
-const COLLECTO_USERNAME = process.env.COLLECTO_USERNAME;
 const COLLECTO_API_KEY = process.env.COLLECTO_API_KEY;
 if (!COLLECTO_API_KEY) {
     console.warn("Warning: COLLECTO_API_KEY not set in .env");
